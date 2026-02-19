@@ -10,6 +10,7 @@ from core.http_server import SimpleHttpServer
 from core.websocket_server import WebSocketServer
 from core.utils.util import check_ffmpeg_installed
 from core.utils.gc_manager import get_gc_manager
+from core.utils.lovielab_auth import LovieLabAuth
 
 TAG = __name__
 logger = setup_logging()
@@ -46,6 +47,10 @@ async def monitor_stdin():
 async def main():
     check_ffmpeg_installed()
     config = load_config()
+
+    # Initialize Lovielab authentication (if configured) and start hourly token rotation
+    LovieLabAuth.initialize(config.get("lovielab", {}))
+    lovielab_task = asyncio.create_task(LovieLabAuth.start_token_rotation())
 
     # auth_key优先级：配置文件server.auth_key > manager-api.secret > 自动生成
     # auth_key用于jwt认证，比如视觉分析接口的jwt认证、ota接口的token生成与websocket认证
@@ -133,12 +138,13 @@ async def main():
         # 取消所有任务（关键修复点）
         stdin_task.cancel()
         ws_task.cancel()
+        lovielab_task.cancel()
         if ota_task:
             ota_task.cancel()
 
         # 等待任务终止（必须加超时）
         await asyncio.wait(
-            [stdin_task, ws_task, ota_task] if ota_task else [stdin_task, ws_task],
+            [stdin_task, ws_task, ota_task, lovielab_task] if ota_task else [stdin_task, ws_task, lovielab_task],
             timeout=3.0,
             return_when=asyncio.ALL_COMPLETED,
         )
