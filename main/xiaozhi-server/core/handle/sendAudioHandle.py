@@ -45,8 +45,6 @@ async def sendAudioMessage(conn: "ConnectionHandler", sentenceType, audios, text
 
     # 发送结束消息（如果是最后一个文本）
     if sentenceType == SentenceType.LAST:
-        if hasattr(conn, "audio_rate_controller") and conn.audio_rate_controller:
-            print("Rate controller exists")
         await send_tts_message(conn, "stop", None)
         conn.client_is_speaking = False
         if conn.close_after_chat:
