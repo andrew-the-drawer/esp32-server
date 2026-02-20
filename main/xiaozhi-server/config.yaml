@@ -338,7 +338,7 @@ Memory:
     # 如果你的不想使用selected_module.LLM记忆存储，这里最好使用独立的LLM作为意图识别，例如使用免费的ChatGLMLLM
     llm: ChatGLMLLM
 
-lovieLab:
+lovielab:
   email:
   password:
   base_url: https://app.lovielab.com/api/v1
