@@ -34,10 +34,9 @@ class LovieLabAuth:
               password: your_password
               base_url: https://app.lovielab.com/api/v1   # optional
         """
-        lovielab_cfg = config.get("provider", {})
-        cls._email = lovielab_cfg.get("email")
-        cls._password = lovielab_cfg.get("password")
-        cls._base_url = lovielab_cfg.get("base_url", "https://app.lovielab.com/api/v1")
+        cls._email = config.get("email")
+        cls._password = config.get("password")
+        cls._base_url = config.get("base_url", "https://app.lovielab.com/api/v1")
 
         if not cls._email or not cls._password:
             logger.bind(tag=TAG).warning(
@@ -81,7 +80,6 @@ class LovieLabAuth:
         token = response.json().get("token")
         if not token:
             raise ValueError("No token in Lovielab authentication response")
-
         cls._access_token = token
         logger.bind(tag=TAG).info("Lovielab authentication successful")
 

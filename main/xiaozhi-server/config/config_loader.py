@@ -118,6 +118,8 @@ def ensure_directories(config):
         if config.get(selected_provider) is None:
             continue
         provider_config = config.get(module_type, {}).get(selected_provider, {})
+        if provider_config is None:
+            continue
         output_dir = provider_config.get("output_dir")
         if output_dir:
             full_model_dir = os.path.join(project_dir, output_dir)

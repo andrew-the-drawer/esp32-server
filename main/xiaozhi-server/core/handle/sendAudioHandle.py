@@ -45,6 +45,8 @@ async def sendAudioMessage(conn: "ConnectionHandler", sentenceType, audios, text
 
     # 发送结束消息（如果是最后一个文本）
     if sentenceType == SentenceType.LAST:
+        if hasattr(conn, "audio_rate_controller") and conn.audio_rate_controller:
+            print("Rate controller exists")
         await send_tts_message(conn, "stop", None)
         conn.client_is_speaking = False
         if conn.close_after_chat:
@@ -60,7 +62,7 @@ async def _wait_for_audio_completion(conn: "ConnectionHandler"):
     """
     if hasattr(conn, "audio_rate_controller") and conn.audio_rate_controller:
         rate_controller = conn.audio_rate_controller
-        conn.logger.bind(tag=TAG).debug(
+        conn.logger.bind(tag=TAG).info(
             f"等待音频发送完成，队列中还有 {len(rate_controller.queue)} 个包"
         )
         await rate_controller.queue_empty_event.wait()
@@ -69,6 +71,9 @@ async def _wait_for_audio_completion(conn: "ConnectionHandler"):
         # 前N个包直接发送，增加2个网络抖动包，需要额外等待它们在客户端播放完成
         frame_duration_ms = rate_controller.frame_duration
         pre_buffer_playback_time = (PRE_BUFFER_COUNT + 2) * frame_duration_ms / 1000.0
+        conn.logger.bind(tag=TAG).info(
+            f"Wait time {pre_buffer_playback_time} 个包"
+        )
         await asyncio.sleep(pre_buffer_playback_time)
 
         conn.logger.bind(tag=TAG).debug("音频发送完成")
